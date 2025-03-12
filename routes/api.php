@@ -1,21 +1,21 @@
 <?php
 
-use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\ProductController;
+
+use App\Http\Controllers\Api\V1\Admin\AdminController;
+use App\Http\Controllers\Api\V1\Admin\ProductController;
+use App\Http\Controllers\Api\V1\Auth\AuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use \Illuminate\Auth\Middleware\Authorize;
 
 
-
-
-// Route::apiRessource('products', ProductController::class);
-
-
-Route::post('/register', [AuthController::class, 'Register']);
-Route::post('/login', [AuthController::class, 'Login']);
-
+// Auth api routes
+Route::post('/register', [AuthController::class, 'Register'])->name('register');
+Route::post('/login', [AuthController::class, 'Login'])->name('login');
 Route::post('/logout', [AuthController::class, 'Logout'])->middleware('auth:sanctum');
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+// dashboard routes
+Route::get('/v1/admin/dashboard', [AdminController::class, 'index'])->middleware(['auth:sanctum', 'can:view_dashboard']);
+
+// product routes
+Route::apiResource('products', ProductController::class);

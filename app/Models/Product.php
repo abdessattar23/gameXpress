@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Product extends Model
 {
-
     use SoftDeletes;
     protected $fillable = [
         'name',
@@ -18,6 +17,7 @@ class Product extends Model
         'category_id',
     ];
 
-
-    
+    public function images(){
+        return $this->hasMany(Image::class);
+    }
 }
