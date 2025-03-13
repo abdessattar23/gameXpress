@@ -38,7 +38,7 @@ class RolesPermissionsSeeder extends Seeder
         $role_3 = Role::create(['name' => 'user_manager']);
         $role_4 = Role::create(['name' => 'guest']);
         // assign permissions to roles
-        $role_1->syncPermissions(Permission::all());
+        $role_1->givePermissions(Permission::all());
         $role_2->givePermissionTo([
             'view_dashboard',
             'view_products',
