@@ -22,6 +22,7 @@ class RolesPermissionsSeeder extends Seeder
         Permission::create(['name' => 'create_products']);
         Permission::create(['name' => 'edit_products']);
         Permission::create(['name' => 'delete_products']);
+        Permission::create(['name' => 'restore_products']);
         Permission::create(['name' => 'view_categories']);
         Permission::create(['name' => 'create_categories']);
         Permission::create(['name' => 'edit_categories']);
@@ -44,10 +45,7 @@ class RolesPermissionsSeeder extends Seeder
             'create_products',
             'edit_products',
             'delete_products',
-            'view_categories',
-            'create_categories',
-            'edit_categories',
-            'delete_categories',
+            'restore_products',
         ]);
         $role_3->givePermissionTo([
             'view_dashboard',

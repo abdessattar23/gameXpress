@@ -22,3 +22,4 @@ Route::get('/v1/admin/dashboard', [DashboardController::class, 'index'])->middle
 // product routes
 Route::apiResource('products', ProductController::class)->middleware('auth:sanctum');
 Route::post('/products/{product}/restore', [ProductController::class, 'restore'])->middleware('auth:sanctum');
+Route::delete('/products/{product}/hard-delete', [ProductController::class, 'forceDelete'])->middleware('auth:sanctum');
