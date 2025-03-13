@@ -30,6 +30,5 @@ class DashboardController extends Controller
             'message' => 'Dashboard data retrieved successfully',
             'status' => 'success'
         ], 200);
-
     }
 }
