@@ -1,10 +1,9 @@
 <?php
 
-
-use App\Http\Controllers\Api\V1\Admin\AdminController;
 use App\Http\Controllers\api\v1\admin\CategoryController;
 use App\Http\Controllers\Api\V1\Admin\DashboardController;
 use App\Http\Controllers\Api\V1\Admin\ProductController;
+use App\Http\Controllers\Api\V1\Admin\UserController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -25,10 +24,21 @@ Route::apiResource('products', ProductController::class)->middleware('auth:sanct
 Route::post('/products/{product}/restore', [ProductController::class, 'restore'])->middleware('auth:sanctum');
 Route::delete('/products/{product}/hard-delete', [ProductController::class, 'forceDelete'])->middleware('auth:sanctum');
 
-// category routes
+// users and categories routes
 Route::prefix('/v1/admin')->middleware('auth:sanctum')->group(function(){
+    /*
+        *categories routes
+    */
     Route::get('/categories', [CategoryController::class, 'index']);
     Route::post('/categories', [CategoryController::class, 'store']);
-    Route::put('/categories/{category}/update', [CategoryController::class,'update']);
-    Route::delete('/categories/{category}/delete', [CategoryController::class,'destroy']);
+    Route::put('/categories/{category}', [CategoryController::class,'update']);
+    Route::delete('/categories/{category}', [CategoryController::class,'destroy']);
+    /*
+        *users routes
+    */
+    Route::get('/users', [UserController::class, 'index']);
+    Route::post('/users', [userController::class, 'store']);
+    Route::put('/users/{user}', [userController::class, 'update']);
+    Route::delete('/users/{user}', [userController::class, 'destroy']);
+    Route::delete('/users/{user}/delete', [userController::class, 'physicDelete']);
 });

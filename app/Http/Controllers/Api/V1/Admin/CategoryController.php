@@ -83,7 +83,7 @@ class CategoryController extends Controller
             ], 404);
         }
 
-        
+
         if ($category->products()->count() > 0) {
             return response()->json([
                 'message' => 'Cannot delete category with associated products',
