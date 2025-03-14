@@ -16,7 +16,7 @@ Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
 // dashboard routes
-Route::get('/v1/admin/dashboard', [DashboardController::class, 'index'])->middleware('auth:sanctum');
+Route::get('/v1/admin/dashboard', [DashboardController::class, 'index'])->middleware('auth:sanctum, role:super_admin|product_manager|user_manager');
 
 
 // product routes
@@ -29,16 +29,21 @@ Route::prefix('/v1/admin')->middleware('auth:sanctum')->group(function(){
     /*
         *categories routes
     */
-    Route::get('/categories', [CategoryController::class, 'index']);
-    Route::post('/categories', [CategoryController::class, 'store']);
-    Route::put('/categories/{category}', [CategoryController::class,'update']);
-    Route::delete('/categories/{category}', [CategoryController::class,'destroy']);
+    Route::middleware('role:super_admin')->group( function(){
+        Route::get('/categories', [CategoryController::class, 'index']);
+        Route::post('/categories', [CategoryController::class, 'store']);
+        Route::put('/categories/{category}', [CategoryController::class,'update']);
+        Route::delete('/categories/{category}', [CategoryController::class,'destroy']);
+    });
     /*
         *users routes
     */
-    Route::get('/users', [UserController::class, 'index']);
-    Route::post('/users', [userController::class, 'store']);
-    Route::put('/users/{user}', [userController::class, 'update']);
-    Route::delete('/users/{user}', [userController::class, 'destroy']);
-    Route::delete('/users/{user}/delete', [userController::class, 'physicDelete']);
+    Route::middleware('role:super_admin|user_manager')->group( function (){
+        Route::get('/users', [UserController::class, 'index']);
+        Route::post('/users', [userController::class, 'store']);
+        Route::put('/users/{user}', [userController::class, 'update']);
+        Route::delete('/users/{user}', [userController::class, 'destroy']);
+        Route::delete('/users/{user}/delete', [userController::class, 'physicDelete']);
+    });
 });
+

@@ -17,8 +17,6 @@ class ProductController extends Controller
     public function index()
     {
 
-
-
         if(!auth()->user()->can('view_products')){
             return response()->json([
                 'message' => 'You do not have permission to view products'
