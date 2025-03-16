@@ -57,6 +57,7 @@ class listProductTest extends TestCase
         $response = $this->getJson('/api/products');
 
         $response->assertStatus(200)
+        
             ->assertJson([
                 'message' => 'Success'
             ])

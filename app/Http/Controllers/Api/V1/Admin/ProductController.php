@@ -279,9 +279,7 @@ class ProductController extends Controller
 
         if ($products->count() > 0) {
 
-            $notifiable_admin = User::role('super_admin')->get();
-            // dd($notifiable_admin);
-
+            $notifiable_admin = User::role('super_admin')->first();
 
             $notifiable_admin->notify(new LowStockNotification($products));
 
