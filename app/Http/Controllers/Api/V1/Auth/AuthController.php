@@ -28,7 +28,7 @@ class AuthController extends Controller
         if ($user->id == 1) {
             $user->assignRole('super_admin');
         }else {
-            $user->assignRole('guest');
+            $user->assignRole('client');
         }
 
         $token = $user->createToken('register token')->plainTextToken;
