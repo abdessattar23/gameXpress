@@ -7,9 +7,33 @@ use App\Models\User;
 use App\Notifications\LoginNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class AuthController extends Controller
 {
+    static function validToken($bearerToken): bool
+    {
+        if (!$bearerToken) {
+            return false;
+        }
+
+        try {
+            $token = PersonalAccessToken::findToken($bearerToken);
+
+            if (!$token) {
+                return false;
+            }
+
+            $expiration = config('sanctum.expiration');
+            if ($expiration && $token->created_at->lte(now()->subMinutes($expiration))) {
+                return false;
+            }
+
+            return true;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
     public function register(Request $request)
     {
 

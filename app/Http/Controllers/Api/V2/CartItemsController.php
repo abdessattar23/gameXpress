@@ -6,29 +6,34 @@ use App\Http\Controllers\Controller;
 use App\Models\CartItem;
 use App\Models\Product;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\Api\V1\Auth\AuthController;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class CartItemsController extends Controller
 {
     public function add(Request $request)
     {
         try {
-            dd(Auth::id());
             $data = $request->validate([
                 'product_id' => 'required|integer|exists:products,id',
-                'quantity' => 'required|integer|min:1|max:' . Product::find($request->product_id)->stock
+                'quantity' => 'required|integer|min:1|max:' . Product::find($request->product_id)->stock,
+                'session_id' => 'nullable',
             ]);
-            if(!auth()->user()){
-                $data['session_id'] = uniqid('cart_', true);
-                $data['user_id'] = null;
-            }else{
-                $data['user_id'] = auth()->id();
+            if (!AuthController::validToken($request->bearerToken())) {
+                if ($data['session_id'] == null) {
+                    $data['session_id'] = uniqid('cart_', true);
+                } else {
+                    $data['user_id'] = null;
+
+                }
+            } else {
+                $data['user_id'] = PersonalAccessToken::findToken($request->bearerToken())->tokenable->id;
                 $data['session_id'] = null;
             }
 
-            CartItem::create($data);
+            CartItem::createOrUpdate($data, $data['session_id']);
 
-            return response()->json(['message' => 'Item added to cart', 'data' => $data]);
+            return response()->json(['message' => 'Item added to cart', 'session_id' => $data['session_id']]);
         } catch (\Throwable $th) {
             return response()->json(['message' => 'Error adding item to cart', 'error' => $th->getMessage()]);
         }
