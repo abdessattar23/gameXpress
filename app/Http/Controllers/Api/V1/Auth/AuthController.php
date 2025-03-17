@@ -13,7 +13,7 @@ use Laravel\Sanctum\PersonalAccessToken;
 
 class AuthController extends Controller
 {
-    static function validToken($bearerToken): bool
+    public static function validToken($bearerToken): bool
     {
         if (!$bearerToken) {
             return false;
@@ -58,8 +58,13 @@ class AuthController extends Controller
         }
 
         $token = $user->createToken('register token')->plainTextToken;
-        $sessionId = $request->session_id;
-        CartItem::mergeCartItems($sessionId, $user->id);
+
+        // merge The cart items
+        if (isset($request->session_id)) {
+            $sessionId = $request->session_id;
+            CartItemsController::mergeCartItems($sessionId, $user->id);
+        }
+
 
         return response()->json([
             'user' => $user,
@@ -70,11 +75,11 @@ class AuthController extends Controller
     }
 
     public function login(Request $request){
-        // dd($request->all());
 
         $request->validate([
             'email' => 'required|email|exists:users',
             'password' =>'required'
+
         ]);
 
         $user = User::where('email', $request->email)->first();
@@ -91,10 +96,11 @@ class AuthController extends Controller
         $user->tokens()->delete();
 
         $token = $user->createToken('login token')->plainTextToken;
-        $sessionId = $request->session_id;
-        CartItemsController::mergeCartItems($sessionId, $user->id);
 
-        // $user->notify(new LoginNotification());
+        if (isset($request->session_id)) {
+            $sessionId = $request->session_id;
+            CartItemsController::mergeCartItems($sessionId, $user->id);
+        }
 
         return response()->json([
             "user" => $user,

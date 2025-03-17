@@ -24,7 +24,6 @@ class CartItemsController extends Controller
                     $data['session_id'] = uniqid('cart_', true);
                 } else {
                     $data['user_id'] = null;
-
                 }
             } else {
                 $data['user_id'] = PersonalAccessToken::findToken($request->bearerToken())->tokenable->id;
