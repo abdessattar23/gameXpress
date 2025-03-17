@@ -8,7 +8,9 @@ use App\Http\Controllers\Api\V1\Auth\AuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use \Illuminate\Auth\Middleware\Authorize;
-
+use App\Models\User;
+use App\Models\Role;
+use Illuminate\Support\Facades\Auth;
 
 // Auth api routes
 Route::post('/register', [AuthController::class, 'register'])->name('register');
@@ -46,4 +48,23 @@ Route::prefix('/v1/admin')->middleware('auth:sanctum')->group(function(){
         Route::delete('/users/{user}/delete', [userController::class, 'physicDelete']);
     });
 });
+
+
+
+// testing route
+
+route::get('test', function(){
+
+
+
+        $roles = Role::all();
+
+        return response()->json([
+            'message' => 'Success',
+            'data' => $roles
+        ], 200);
+    }
+
+
+);
 
