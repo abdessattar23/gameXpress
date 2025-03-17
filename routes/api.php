@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\V1\Admin\DashboardController;
 use App\Http\Controllers\Api\V1\Admin\ProductController;
 use App\Http\Controllers\Api\V1\Admin\UserController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
+use App\Http\Controllers\RolesController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use \Illuminate\Auth\Middleware\Authorize;
@@ -67,4 +68,10 @@ route::get('test', function(){
 
 
 );
+
+
+// setting routes for RolesManagement
+
+Route::get('admin/roles', [RolesController::class, 'index'])->middleware('auth:sanctum');
+Route::post('admin/roles', [RolesController::class, 'store'])->middleware('auth:sanctum');
 
