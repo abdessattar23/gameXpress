@@ -16,18 +16,18 @@ Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
 // dashboard routes
-Route::get('/v1/admin/dashboard', [DashboardController::class, 'index'])->middleware('auth:sanctum, role:super_admin|product_manager|user_manager');
+Route::get('/v1/admin/dashboard', [DashboardController::class, 'index'])->middleware('auth:sanctum, role:super_admin');
 
 
-// product routes
-Route::apiResource('products', ProductController::class)->middleware('auth:sanctum');
+// products routes
+Route::apiResource('products', ProductController::class)->middleware(['auth:sanctum', 'role:super_admin|product_manager']);
 Route::post('/products/{product}/restore', [ProductController::class, 'restore'])->middleware('auth:sanctum');
 Route::delete('/products/{product}/hard-delete', [ProductController::class, 'forceDelete'])->middleware('auth:sanctum');
 
 // users and categories routes
 Route::prefix('/v1/admin')->middleware('auth:sanctum')->group(function(){
     /*
-        *categories routes
+    categories routes
     */
     Route::middleware('role:super_admin')->group( function(){
         Route::get('/categories', [CategoryController::class, 'index']);
@@ -36,7 +36,7 @@ Route::prefix('/v1/admin')->middleware('auth:sanctum')->group(function(){
         Route::delete('/categories/{category}', [CategoryController::class,'destroy']);
     });
     /*
-        *users routes
+    users routes
     */
     Route::middleware('role:super_admin|user_manager')->group( function (){
         Route::get('/users', [UserController::class, 'index']);
