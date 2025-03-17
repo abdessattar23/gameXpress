@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\V1\Admin\DashboardController;
 use App\Http\Controllers\Api\V1\Admin\ProductController;
 use App\Http\Controllers\Api\V1\Admin\UserController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
+use App\Http\Controllers\Api\V2\CartItemsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use \Illuminate\Auth\Middleware\Authorize;
@@ -45,5 +46,13 @@ Route::prefix('/v1/admin')->middleware('auth:sanctum')->group(function(){
         Route::delete('/users/{user}', [userController::class, 'destroy']);
         Route::delete('/users/{user}/delete', [userController::class, 'physicDelete']);
     });
+});
+
+Route::prefix('/v2/cart')->group(function(){
+    Route::post('/add', [CartItemsController::class, 'add']);
+    Route::post('/update', [CartItemsController::class, 'update']);
+    Route::post('/remove', [CartItemsController::class, 'remove']);
+    Route::post('/clear', [CartItemsController::class, 'clear']);
+    Route::get('/items', [CartItemsController::class, 'items']);
 });
 

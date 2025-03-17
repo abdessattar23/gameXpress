@@ -12,6 +12,13 @@ class ProductSeeder extends Seeder
      */
     public function run(): void
     {
-        //
+        \App\Models\Product::create([
+            'name' => 'Sample Product',
+            'description' => 'This is a sample product description',
+            'slug' => 'This-is-a-sample-product',
+            'price' => 19.99,
+            'category_id' => 1,
+            'stock' => 10
+        ]);
     }
 }
