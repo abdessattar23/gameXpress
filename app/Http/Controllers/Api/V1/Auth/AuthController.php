@@ -2,7 +2,9 @@
 
 
 namespace App\Http\Controllers\Api\V1\Auth;
+use App\Http\Controllers\Api\V2\CartItemsController;
 use App\Http\Controllers\Controller;
+use App\Models\CartItem;
 use App\Models\User;
 use App\Notifications\LoginNotification;
 use Illuminate\Http\Request;
@@ -32,6 +34,8 @@ class AuthController extends Controller
         }
 
         $token = $user->createToken('register token')->plainTextToken;
+        $sessionId = $request->session_id;
+        CartItem::mergeCartItems($sessionId, $user->id);
 
         return response()->json([
             'user' => $user,
@@ -42,6 +46,7 @@ class AuthController extends Controller
     }
 
     public function login(Request $request){
+        // dd($request->all());
 
         $request->validate([
             'email' => 'required|email|exists:users',
@@ -50,6 +55,7 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
+
         if (!$user || !Hash::check($request->password, $user->password)){
             return response()->json([
                 'message' => 'Invalid credentials',
@@ -57,12 +63,14 @@ class AuthController extends Controller
             ], 401);
         }
 
-        // revoke old ones
+
         $user->tokens()->delete();
 
         $token = $user->createToken('login token')->plainTextToken;
+        $sessionId = $request->session_id;
+        CartItemsController::mergeCartItems($sessionId, $user->id);
 
-        $user->notify(new LoginNotification());
+        // $user->notify(new LoginNotification());
 
         return response()->json([
             "user" => $user,
