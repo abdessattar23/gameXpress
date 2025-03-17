@@ -62,7 +62,7 @@ class AuthController extends Controller
 
         $token = $user->createToken('login token')->plainTextToken;
 
-        $user->notify(new LoginNotification());
+        // $user->notify(new LoginNotification());
 
         return response()->json([
             "user" => $user,
