@@ -13,7 +13,6 @@ class CartItemsController extends Controller
 {
     public function add(Request $request)
     {
-        // dd($request->bearerToken());
         try {
             $data = [
                 'session_id' => null,
@@ -48,14 +47,7 @@ class CartItemsController extends Controller
         return response()->json(['message' => 'Item updated']);
     }
 
-    public function removeFromCart($id)
-    {
 
-
-        $row = CartItem::findOrFail($id)->delete();
-
-        return response()->json(['message' => 'Item removed from cart']);
-    }
 
     public function clear(Request $request)
     {
@@ -93,5 +85,12 @@ class CartItemsController extends Controller
             }
         }
         return response()->json(['message' => 'Cart items merged']);
+    }
+
+    public function removeFromCart($id)
+    {
+        $row = CartItem::findOrFail($id);
+        dd($row);
+        return response()->json(['message' => 'Item removed from cart']);
     }
 }
