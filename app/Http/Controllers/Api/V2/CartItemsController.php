@@ -97,10 +97,6 @@ class CartItemsController extends Controller
         }
     }
 
-    public function remove(Request $request)
-    {
-        return response()->json(['message' => 'Remove method']);
-    }
 
     public function clear(Request $request)
     {
