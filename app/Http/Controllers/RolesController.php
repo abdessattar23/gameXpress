@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Illuminate\Support\Facades\DB;
 
 class RolesController extends Controller
 {
@@ -107,6 +108,8 @@ class RolesController extends Controller
         ], 200);
     }
 
+
+    /*
     public function destroy($id)
     {
         if (!auth()->user()->can('delete_users')) {
@@ -115,21 +118,41 @@ class RolesController extends Controller
             ], 403);
         }
 
-        $role = Role::findOrFail($id);
-        
-        // Prevent deletion of default roles
-        if (in_array($role->name, ['super_admin', 'product_manager', 'user_manager', 'guest'])) {
+        try {
+            // Use the Spatie model explicitly with the correct namespace
+            $role = Role::findOrFail($id);
+            
+            // Prevent deletion of default roles
+            if (in_array($role->name, ['super_admin', 'product_manager', 'user_manager', 'guest'])) {
+                return response()->json([
+                    'message' => 'Cannot delete default roles'
+                ], 403);
+            }
+
+            // Remove all relationships first
+            $role->syncPermissions([]);
+            
+            //dd($role);
+
+            // Detach this role from all users
+            $role->users()->detach();
+            
+            // Now delete the role
+            $role->delete();
+
             return response()->json([
-                'message' => 'Cannot delete default roles'
-            ], 403);
+                'message' => 'Role deleted successfully'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error deleting role: ' . $e->getMessage()
+            ], 500);
         }
-
-        $role->delete();
-
-        return response()->json([
-            'message' => 'Role deleted successfully'
-        ], 200);
     }
+
+
+    */ 
+
 
     public function assignRoleToUser(Request $request)
     {
@@ -141,7 +164,7 @@ class RolesController extends Controller
 
         $data = $request->validate([
             'user_id' => 'required|exists:users,id',
-            'roles' => 'required|array',
+            'roles' => 'required',
             'roles.*' => 'exists:roles,name'
         ]);
 
