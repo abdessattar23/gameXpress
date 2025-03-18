@@ -76,17 +76,17 @@ Route::get('roles', [RolesController::class, 'index'])->middleware('auth:sanctum
 Route::post('roles/create', [RolesController::class, 'store'])->middleware('auth:sanctum');
 
 
-// // new routes for roles management
+// new routes for roles management
 
-// Route::get('roles/{id}', [RolesController::class, 'show'])->middleware('auth:sanctum');
-// Route::put('roles/edit/{id}', [RolesController::class, 'update']);
-// Route::delete('roles/delete/{id}', [RolesController::class, 'destroy']);
+Route::get('roles/{id}', [RolesController::class, 'show'])->middleware('auth:sanctum');
+Route::put('roles/edit/{id}', [RolesController::class, 'update']);
+Route::delete('roles/delete/{id}', [RolesController::class, 'destroy']);
 
 
-// // Routes for permissions
-// Route::get('permissions', [RolesController::class, 'getPermissions']);
+// Routes for permissions
+Route::get('permissions', [RolesController::class, 'getPermissions']);
     
-// // Routes for assigning roles to users
-// Route::post('assign-roles', [RolesController::class, 'assignRoleToUser']);
-// Route::get('users/{id}/roles', [RolesController::class, 'getUserRoles']);
+// Routes for assigning roles to users
+Route::post('assign-roles', [RolesController::class, 'assignRoleToUser']);
+Route::get('users/{id}/roles', [RolesController::class, 'getUserRoles']);
 

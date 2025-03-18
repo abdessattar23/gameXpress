@@ -39,7 +39,7 @@ class RolesController extends Controller
             'name' => 'required|string|unique:roles,name',
             'permissions' => 'sometimes|array',
             'permissions.*' => 'exists:permissions,name'
-        ]);
+            ]);
 
         $role = Role::create(['name' => $data['name']]);
 

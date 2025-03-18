@@ -63,9 +63,31 @@ class UserController extends Controller
     }
 
 
+    public function show($id)
+    {
+        if (!auth()->user()->can('view_users')) {
+            return response()->json([
+                'message' => 'You do not have permission to view users'
+            ], 403);
+        }
+
+        $user = User::with('roles')->find($id);
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'User not found',
+                'status' => 'error 404'
+            ], 404);
+        }
+
+        return response()->json([
+            'message' => 'Success',
+            'data' => $user
+        ], 200);
+    }
+
+
     
 
 
 }
-
-
