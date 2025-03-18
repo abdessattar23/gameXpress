@@ -14,16 +14,20 @@ class CartItemsController extends Controller
     public function add(Request $request)
     {
         try {
-            $data = $request->validate([
+            $data = [
+                'session_id' => null,
+                'user_id' => null
+            ];
+            $validated = $request->validate([
                 'product_id' => 'required|integer|exists:products,id',
                 'quantity' => 'required|integer|min:1|max:' . Product::find($request->product_id)->stock,
                 'session_id' => 'nullable',
             ]);
+            $data = array_merge($data, $validated);
+
             if (!AuthController::validToken($request->bearerToken())) {
-                if ($data['session_id'] == null) {
+                if (!$data['session_id']) {
                     $data['session_id'] = uniqid('cart_', true);
-                } else {
-                    $data['user_id'] = null;
                 }
             } else {
                 $data['user_id'] = PersonalAccessToken::findToken($request->bearerToken())->tokenable->id;
