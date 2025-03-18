@@ -7,6 +7,7 @@ use App\Models\CartItem;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
+use GuzzleHttp\Psr7\Response;
 use Laravel\Sanctum\PersonalAccessToken;
 
 class CartItemsController extends Controller
@@ -60,21 +61,90 @@ class CartItemsController extends Controller
 
     public function update(Request $request)
     {
-        return response()->json(['message' => 'Item updated']);
+        try {
+            $validated = $request->validate([
+                'product_id' => 'required|integer|exists:products,id',
+                'quantity' => 'required|integer|min:1|max:' . Product::find($request->product_id)->stock,
+                'session_id' => 'nullable',
+            ]);
+
+            $conditions = [];
+            if (!AuthController::validToken($request->bearerToken())) {
+                if (!$validated['session_id']) {
+                    return response()->json(['message' => 'Session ID is required'], 422);
+                }
+                $conditions['session_id'] = $validated['session_id'];
+            } else {
+                $conditions['user_id'] = PersonalAccessToken::findToken($request->bearerToken())->tokenable->id;
+            }
+
+            $conditions['product_id'] = $validated['product_id'];
+            $cartItem = CartItem::where($conditions)->first();
+
+            if (!$cartItem) {
+                return response()->json(['message' => 'Cart item not found'], 404);
+            }
+
+            $product = Product::find($validated['product_id']);
+            if ($validated['quantity'] > $product->stock) {
+                return response()->json(['message' => 'Requested quantity exceeds available stock'], 422);
+            }
+
+            $cartItem->update(['quantity' => $validated['quantity']]);
+            return response()->json(['message' => 'Item updated successfully', 'cart_item' => $cartItem]);
+        } catch (\Throwable $th) {
+            return response()->json(['message' => 'Error updating item', 'error' => $th->getMessage()], 500);
+        }
     }
 
     public function remove(Request $request)
     {
-        return response()->json(['message' => 'Item removed']);
+        return response()->json(['message' => 'Remove method']);
     }
 
     public function clear(Request $request)
     {
-        return response()->json(['message' => 'Cart cleared']);
+        try {
+            $conditions = [];
+            if (!AuthController::validToken($request->bearerToken())) {
+                $validated = $request->validate([
+                    'session_id' => 'required',
+                ]);
+                $conditions['session_id'] = $validated['session_id'];
+            } else {
+                $conditions['user_id'] = PersonalAccessToken::findToken($request->bearerToken())->tokenable->id;
+            }
+
+            CartItem::where($conditions)->delete();
+            return response()->json(['message' => 'Cart cleared successfully']);
+        } catch (\Throwable $th) {
+            return response()->json(['message' => 'Error clearing cart', 'error' => $th->getMessage()], 500);
+        }
     }
 
     public function items(Request $request)
     {
-        return response()->json(['message' => 'Cart items']);
+        try {
+            $conditions = [];
+            if (!AuthController::validToken($request->bearerToken())) {
+                $validated = $request->validate([
+                    'session_id' => 'required',
+                ]);
+                $conditions['session_id'] = $validated['session_id'];
+            } else {
+                $conditions['user_id'] = PersonalAccessToken::findToken($request->bearerToken())->tokenable->id;
+            }
+
+            $items = CartItem::where($conditions)
+                ->with('product')
+                ->get();
+
+            return response()->json([
+                'message' => 'Cart items retrieved successfully',
+                'items' => $items
+            ]);
+        } catch (\Throwable $th) {
+            return response()->json(['message' => 'Error retrieving cart items', 'error' => $th->getMessage()], 500);
+        }
     }
 }
