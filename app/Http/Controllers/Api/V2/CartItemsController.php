@@ -121,24 +121,31 @@ class CartItemsController extends Controller
 
     public function items(Request $request)
     {
+        // dd($request->bearerToken());
         try {
             $conditions = [];
             if (!AuthController::validToken($request->bearerToken())) {
+                // dd(true);
                 $validated = $request->validate([
                     'session_id' => 'required',
                 ]);
                 $conditions['session_id'] = $validated['session_id'];
+                $total = $this->calculateTotal(null, $conditions['session_id']);
             } else {
                 $conditions['user_id'] = PersonalAccessToken::findToken($request->bearerToken())->tokenable->id;
+                $total = $this->calculateTotal($conditions['user_id'], null);
             }
 
             $items = CartItem::where($conditions)
                 ->with('product')
                 ->get();
 
+
+
             return response()->json([
                 'message' => 'Cart items retrieved successfully',
-                'items' => $items
+                'items' => $items,
+                'total' => $total
             ]);
         } catch (\Throwable $th) {
             return response()->json(['message' => 'Error retrieving cart items', 'error' => $th->getMessage()], 500);
@@ -175,12 +182,20 @@ class CartItemsController extends Controller
 
     public function removeFromCart($id)
     {
-        $row = CartItem::findOrFail($id)->delete();
-        dd($row);
-
-        $this->calculateTotal($row->user_id, $row->session_id);
-
-        return response()->json(['message' => 'Item removed from cart']);
+        $row = CartItem::findOrFail($id);
+        $userId = $row->user_id;
+        $sessionId = $row->session_id;
+        $row->delete();
+        $total = 0;
+        if ($userId === null) {
+            $total = $this->calculateTotal(null, $sessionId);
+        } else {
+            $total = $this->calculateTotal($userId, null);
+        }
+        return response()->json([
+            'message' => 'Item removed from cart',
+            'new total' => $total
+        ]);
     }
 
     public function calculateTotal($user, $sessionid)
@@ -201,10 +216,10 @@ class CartItemsController extends Controller
             $totalQuantity += $quantity;
         }
 
-        return response()->json([
+        return [
             'total_price' => $totalPrice,
             'total_quantity' => $totalQuantity
-        ]);
+        ];
     }
 
 
