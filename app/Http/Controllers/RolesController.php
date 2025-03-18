@@ -109,7 +109,7 @@ class RolesController extends Controller
     }
 
 
-    /*
+    
     public function destroy($id)
     {
         if (!auth()->user()->can('delete_users')) {
@@ -132,7 +132,7 @@ class RolesController extends Controller
             // Remove all relationships first
             $role->syncPermissions([]);
             
-            //dd($role);
+            dd($role);
 
             // Detach this role from all users
             $role->users()->detach();
@@ -151,7 +151,7 @@ class RolesController extends Controller
     }
 
 
-    */ 
+
 
 
     public function assignRoleToUser(Request $request)
