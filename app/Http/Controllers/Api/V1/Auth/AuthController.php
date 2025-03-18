@@ -61,6 +61,7 @@ class AuthController extends Controller
 
         // merge The cart items
         if (isset($request->session_id)) {
+            // dd($request->session_id);
             $sessionId = $request->session_id;
             CartItemsController::mergeCartItems($sessionId, $user->id);
         }

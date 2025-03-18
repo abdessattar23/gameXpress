@@ -13,6 +13,7 @@ class CartItemsController extends Controller
 {
     public function add(Request $request)
     {
+        // dd($request->bearerToken());
         try {
             $data = [
                 'session_id' => null,
