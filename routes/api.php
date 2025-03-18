@@ -79,7 +79,7 @@ Route::post('roles/create', [RolesController::class, 'store'])->middleware('auth
 // new routes for roles management
 
 Route::get('roles/{id}', [RolesController::class, 'show'])->middleware('auth:sanctum');
-Route::put('roles/edit/{id}', [RolesController::class, 'update']);
+Route::put('roles/edit/{id}', [RolesController::class, 'update'])->middleware('auth:sanctum');
 Route::delete('roles/delete/{id}', [RolesController::class, 'destroy']);
 
 
