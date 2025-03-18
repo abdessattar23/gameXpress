@@ -106,8 +106,37 @@ class CartItemsController extends Controller
 
     public function removeFromCart($id)
     {
-        $row = CartItem::findOrFail($id);
+        $row = CartItem::findOrFail($id)->delete();
         dd($row);
+
+        $this->calculateTotal($row->user_id, $row->session_id);
+
         return response()->json(['message' => 'Item removed from cart']);
     }
+
+    public function calculateTotal($user, $sessionid)
+    {
+        if ($user) {
+            $cartItems = CartItem::where("user_id", $user)->with('product')->get();
+        } else {
+            $cartItems = CartItem::where("session_id", $sessionid)->with('product')->get();
+        }
+        $totalPrice = 0;
+        $totalQuantity = 0;
+
+        foreach ($cartItems as $item) {
+            $quantity = $item->quantity;
+            $price = $item->product->price ?? 0;
+
+            $totalPrice += $price * $quantity;
+            $totalQuantity += $quantity;
+        }
+
+        return response()->json([
+            'total_price' => $totalPrice,
+            'total_quantity' => $totalQuantity
+        ]);
+    }
+
+
 }
