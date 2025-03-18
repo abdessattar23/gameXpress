@@ -34,7 +34,23 @@ class CartItemsController extends Controller
                 $data['session_id'] = null;
             }
 
-            CartItem::create($data);
+            $existingItem = CartItem::where([
+                'session_id' => $data['session_id'],
+                'product_id' => $data['product_id']
+            ])->first();
+
+            if ($existingItem) {
+                $newQuantity = $existingItem->quantity + $data['quantity'];
+                $product = Product::find($data['product_id']);
+
+                if ($newQuantity > $product->stock) {
+                    return response()->json(['message' => 'Requested quantity exceeds available stock'], 422);
+                }
+
+                $existingItem->update(['quantity' => $newQuantity]);
+            } else {
+                CartItem::create($data);
+            }
 
             return response()->json(['message' => 'Item added to cart', 'session_id' => $data['session_id']]);
         } catch (\Throwable $th) {
