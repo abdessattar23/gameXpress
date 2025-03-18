@@ -15,7 +15,7 @@ use \Illuminate\Auth\Middleware\Authorize;
 Route::post('/register', [AuthController::class, 'register'])->name('register');
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
-Route::get('/total', [CartItemsController::class, 'store']);
+Route::get('/index', [CartItemsController::class, 'index']);
 
 // dashboard routes
 Route::get('/v1/admin/dashboard', [DashboardController::class, 'index'])->middleware('auth:sanctum, role:super_admin');

@@ -2,6 +2,7 @@
 
 
 namespace App\Http\Controllers\Api\V1\Auth;
+
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Notifications\LoginNotification;
@@ -12,8 +13,6 @@ class AuthController extends Controller
 {
     public function register(Request $request)
     {
-
-
         $fields = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
@@ -27,7 +26,7 @@ class AuthController extends Controller
 
         if ($user->id == 1) {
             $user->assignRole('super_admin');
-        }else {
+        } else {
             $user->assignRole('client');
         }
 
@@ -41,16 +40,17 @@ class AuthController extends Controller
         ], 201);
     }
 
-    public function login(Request $request){
+    public function login(Request $request)
+    {
 
         $request->validate([
             'email' => 'required|email|exists:users',
-            'password' =>'required'
+            'password' => 'required'
         ]);
 
         $user = User::where('email', $request->email)->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)){
+        if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json([
                 'message' => 'Invalid credentials',
                 'status' => 'error'
@@ -69,7 +69,6 @@ class AuthController extends Controller
             "token" =>  $token,
             'message' => 'Logged in successfully'
         ], 200);
-
     }
 
     public function logout(Request $request)
