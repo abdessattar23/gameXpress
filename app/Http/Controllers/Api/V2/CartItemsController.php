@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V2;
 use App\Http\Controllers\Controller;
 use App\Models\CartItem;
 use App\Models\Product;
+use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use Laravel\Sanctum\PersonalAccessToken;

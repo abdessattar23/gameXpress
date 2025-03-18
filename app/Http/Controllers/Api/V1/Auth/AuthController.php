@@ -38,8 +38,6 @@ class AuthController extends Controller
     }
     public function register(Request $request)
     {
-
-
         $fields = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
@@ -53,7 +51,7 @@ class AuthController extends Controller
 
         if ($user->id == 1) {
             $user->assignRole('super_admin');
-        }else {
+        } else {
             $user->assignRole('client');
         }
 
@@ -75,7 +73,8 @@ class AuthController extends Controller
         ], 201);
     }
 
-    public function login(Request $request){
+    public function login(Request $request)
+    {
 
         $request->validate([
             'email' => 'required|email|exists:users',
@@ -108,7 +107,6 @@ class AuthController extends Controller
             "token" =>  $token,
             'message' => 'Logged in successfully'
         ], 200);
-
     }
 
     public function logout(Request $request)
