@@ -30,7 +30,7 @@ class CartItemsController extends Controller
                 $data['session_id'] = null;
             }
 
-            CartItem::createOrUpdate($data, $data['session_id']);
+            CartItem::create($data);
 
             return response()->json(['message' => 'Item added to cart', 'session_id' => $data['session_id']]);
         } catch (\Throwable $th) {
@@ -49,12 +49,7 @@ class CartItemsController extends Controller
 
         $row = CartItem::findOrFail($id)->delete();
 
-
-        $total = CartItem::where('user_id', auth()->id())
-                        ->join('products', 'card_items.product_id', '=', 'products.id')
-                        ->sum(DB::raw('card_items.quantity * products.price'));
-
-        return response()->json(['message' => 'Item removed from cart', 'new_total' => $total]);
+        return response()->json(['message' => 'Item removed from cart']);
     }
 
     public function clear(Request $request)
@@ -85,13 +80,13 @@ class CartItemsController extends Controller
             if ($existingItem) {
                 $existingItem->quantity += $sessionItem->quantity;
                 $existingItem->save();
+                CartItem::whereNull('user_id')->where('session_id', $sessionId)->delete();
             } else {
                 $sessionItem->user_id = $userId;
                 $sessionItem->session_id = null;
                 $sessionItem->save();
             }
         }
-        CartItem::whereNull('user_id')->where('session_id', $sessionId)->delete();
         return response()->json(['message' => 'Cart items merged']);
     }
 }
