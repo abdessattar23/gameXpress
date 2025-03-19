@@ -16,4 +16,29 @@ class OrderController extends Controller
             "orders" => $orders
         ]);
     }
+    public function delete($id)
+    {
+        $order = Order::find($id);
+
+        if (!$order) {
+            return response()->json([
+                "message" => "Order not found"
+            ], 404);
+        }
+
+        if ($order->status != "expédiée" && $order->status != "annulée") {
+            $order->update(["status" => "annulée"]);
+            return response()->json([
+                "message" => "The process has completed successfully"
+            ]);
+        } elseif ($order->status == "expédiée") {
+            return response()->json([
+                "message" => "The order is already expédiée"
+            ]);
+        } else {
+            return response()->json([
+                "message" => "The order is already canceled"
+            ]);
+        }
+    }
 }
