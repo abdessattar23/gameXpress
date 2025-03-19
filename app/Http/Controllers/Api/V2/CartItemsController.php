@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api\V2;
 use App\Http\Controllers\Controller;
 use App\Models\CartItem;
 use App\Models\Product;
+use App\Jobs\DeleteProductJob;
+use Carbon\Carbon;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
@@ -35,6 +37,9 @@ class CartItemsController extends Controller
                 $data['user_id'] = PersonalAccessToken::findToken($request->bearerToken())->tokenable->id;
                 $data['session_id'] = null;
             }
+
+            $cart = CartItem::create($data);
+            DeleteProductJob::dispatch($cart->id)->delay(Carbon::now()->addSeconds(10));
 
             $existingItem = CartItem::where([
                 'session_id' => $data['session_id'],
@@ -197,30 +202,48 @@ class CartItemsController extends Controller
             'new total' => $total
         ]);
     }
-
-    public function calculateTotal($user, $sessionid)
+    public function calculateTotal($user, $sessionid, $livraison, $tva, $discount)
     {
-        if ($user) {
-            $cartItems = CartItem::where("user_id", $user)->with('product')->get();
-        } else {
-            $cartItems = CartItem::where("session_id", $sessionid)->with('product')->get();
+        if ($discount < 0 || $discount > 100) {
+            $discount = 0;
         }
-        $totalPrice = 0;
+
+        $cartItems = $user
+            ? CartItem::where("user_id", $user)->with('product')->get()
+            : CartItem::where("session_id", $sessionid)->with('product')->get();
+
+        $subtotal = 0;
         $totalQuantity = 0;
+        $totalDiscount = 0;
 
         foreach ($cartItems as $item) {
             $quantity = $item->quantity;
             $price = $item->product->price ?? 0;
-
-            $totalPrice += $price * $quantity;
+            $itemTotal = $price * $quantity;
+            $discountAmount = ($itemTotal * $discount) / 100;
+            $subtotal += $itemTotal - $discountAmount;
+            $totalDiscount += $discountAmount;
             $totalQuantity += $quantity;
         }
+        $tva = $subtotal * $tva;
 
-        return [
-            'total_price' => $totalPrice,
+        $totalPrice = $subtotal + $tva + $livraison;
+
+        return response()->json([
+            'subtotal' => round($subtotal, 2),
+            'total_discount' => round($totalDiscount, 2),
+            'tva' => round($tva, 2),
+            'shipping_fee' => round($livraison, 2),
+            'total_price' => round($totalPrice, 2),
             'total_quantity' => $totalQuantity
-        ];
+        ]);
     }
 
+    public function discount() {}
+    public function index()
+    {
 
+        $t = $this->calculateTotal(null, 1, 2, 0.4, 2);
+        dd($t);
+    }
 }
