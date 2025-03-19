@@ -39,7 +39,7 @@ class CartItemsController extends Controller
             }
 
             $cart = CartItem::create($data);
-            DeleteProductJob::dispatch($cart->id)->delay(Carbon::now()->addSeconds(10));
+            DeleteProductJob::dispatch($cart->id)->delay(Carbon::now()->addHours(48));
 
             $existingItem = CartItem::where([
                 'session_id' => $data['session_id'],
@@ -158,7 +158,8 @@ class CartItemsController extends Controller
     }
 
 
-    public static function mergeCartItems($sessionId, $userId){
+    public static function mergeCartItems($sessionId, $userId)
+    {
 
         $sessionCartItems = CartItem::whereNull('user_id')
             ->where('session_id', $sessionId)
