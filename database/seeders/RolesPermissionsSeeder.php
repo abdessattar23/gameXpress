@@ -35,7 +35,7 @@ class RolesPermissionsSeeder extends Seeder
         $role_1 = Role::create(['name' => 'super_admin', 'guard_name' => 'sanctum']);
         $role_2 = Role::create(['name' => 'product_manager', 'guard_name' => 'sanctum']);
         $role_3 = Role::create(['name' => 'user_manager', 'guard_name' => 'sanctum']);
-        $role_4 = Role::create(['name' => 'guest', 'guard_name' => 'sanctum']);
+        $role_4 = Role::create(['name' => 'guest', 'guard_name' => 'sanctum']),
         
         // assign permissions to roles
         $role_1->givePermissionTo(Permission::where('guard_name', 'sanctum')->get());
