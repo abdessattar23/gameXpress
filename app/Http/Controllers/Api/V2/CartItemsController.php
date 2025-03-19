@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api\V2;
 use App\Http\Controllers\Controller;
 use App\Models\CartItem;
 use App\Models\Product;
+use App\Jobs\DeleteProductJob;
+use Carbon\Carbon;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,7 +16,6 @@ class CartItemsController extends Controller
     public function add(Request $request)
     {
         try {
-            dd(Auth::id());
             $data = $request->validate([
                 'product_id' => 'required|integer|exists:products,id',
                 'quantity' => 'required|integer|min:1|max:' . Product::find($request->product_id)->stock
@@ -27,7 +28,9 @@ class CartItemsController extends Controller
                 $data['session_id'] = null;
             }
 
-            CartItem::create($data);
+            $cart = CartItem::create($data);
+            DeleteProductJob::dispatch($cart->id)->delay(Carbon::now()->addSeconds(10));
+
 
             return response()->json(['message' => 'Item added to cart', 'data' => $data]);
         } catch (\Throwable $th) {
@@ -73,7 +76,6 @@ class CartItemsController extends Controller
             $price = $item->product->price ?? 0;
             $itemTotal = $price * $quantity;
             $discountAmount = ($itemTotal * $discount) / 100;
-
             $subtotal += $itemTotal - $discountAmount;
             $totalDiscount += $discountAmount;
             $totalQuantity += $quantity;
