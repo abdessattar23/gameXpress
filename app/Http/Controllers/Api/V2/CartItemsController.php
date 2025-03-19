@@ -193,9 +193,9 @@ class CartItemsController extends Controller
         $row->delete();
         $total = 0;
         if ($userId === null) {
-            $total = $this->calculateTotal(null, $sessionId);
+            $total = $this->calculateTotal(null, $sessionId, null, null, null);
         } else {
-            $total = $this->calculateTotal($userId, null);
+            $total = $this->calculateTotal($userId, null, null, null, null);
         }
         return response()->json([
             'message' => 'Item removed from cart',
