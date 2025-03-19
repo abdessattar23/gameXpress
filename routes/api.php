@@ -2,10 +2,12 @@
 
 use App\Http\Controllers\api\v1\admin\CategoryController;
 use App\Http\Controllers\Api\V1\Admin\DashboardController;
+use App\Http\Controllers\Api\V1\Admin\PaymentController;
 use App\Http\Controllers\Api\V1\Admin\ProductController;
 use App\Http\Controllers\Api\V1\Admin\UserController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V2\CartItemsController;
+use Faker\Provider\ar_EG\Payment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use \Illuminate\Auth\Middleware\Authorize;
@@ -48,11 +50,11 @@ Route::prefix('/v1/admin')->middleware('auth:sanctum')->group(function () {
         Route::delete('/users/{user}/delete', [userController::class, 'physicDelete']);
     });
     /*
-    users routes
+    payments routes
     */
-    // Route::midleware('role:super_admin')->group(function(){
-    //     Route::get('/payments');
-    // });
+    Route::midleware('role:super_admin')->group(function(){
+        Route::get('/payments', [PaymentController::class, 'index']);
+    });
 
 });
 
