@@ -52,7 +52,7 @@ Route::prefix('/v1/admin')->middleware('auth:sanctum')->group(function () {
     /*
     payments routes
     */
-    Route::midleware('role:super_admin')->group(function(){
+    Route::middleware('role:super_admin')->group(function(){
         Route::get('/payments', [PaymentController::class, 'index']);
     });
 
