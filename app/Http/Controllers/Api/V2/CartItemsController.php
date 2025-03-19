@@ -30,8 +30,6 @@ class CartItemsController extends Controller
 
             $cart = CartItem::create($data);
             DeleteProductJob::dispatch($cart->id)->delay(Carbon::now()->addSeconds(10));
-
-
             return response()->json(['message' => 'Item added to cart', 'data' => $data]);
         } catch (\Throwable $th) {
             return response()->json(['message' => 'Error adding item to cart', 'error' => $th->getMessage()]);
