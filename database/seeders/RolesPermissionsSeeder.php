@@ -32,7 +32,7 @@ class RolesPermissionsSeeder extends Seeder
         Permission::create(['name' => 'edit_users']);
         Permission::create(['name' => 'delete_users']);
 
-        // create roles
+        // create rolesd
         $role_1 = Role::create(['name' => 'super_admin']);
         $role_2 = Role::create(['name' => 'product_manager']);
         $role_3 = Role::create(['name' => 'user_manager']);
