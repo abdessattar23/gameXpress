@@ -47,6 +47,13 @@ Route::prefix('/v1/admin')->middleware('auth:sanctum')->group(function () {
         Route::delete('/users/{user}', [userController::class, 'destroy']);
         Route::delete('/users/{user}/delete', [userController::class, 'physicDelete']);
     });
+    /*
+    users routes
+    */
+    Route::midleware('role:super_admin')->group(function(){
+        Route::get('/payments');
+    });
+
 });
 
 Route::prefix('/v2/cart')->group(function () {
