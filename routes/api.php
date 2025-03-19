@@ -50,9 +50,9 @@ Route::prefix('/v1/admin')->middleware('auth:sanctum')->group(function () {
     /*
     users routes
     */
-    Route::midleware('role:super_admin')->group(function(){
-        Route::get('/payments');
-    });
+    // Route::midleware('role:super_admin')->group(function(){
+    //     Route::get('/payments');
+    // });
 
 });
 
