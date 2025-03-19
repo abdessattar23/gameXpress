@@ -2,15 +2,40 @@
 
 
 namespace App\Http\Controllers\Api\V1\Auth;
-
+use App\Http\Controllers\Api\V2\CartItemsController;
 use App\Http\Controllers\Controller;
+use App\Models\CartItem;
 use App\Models\User;
 use App\Notifications\LoginNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class AuthController extends Controller
 {
+    public static function validToken($bearerToken): bool
+    {
+        if (!$bearerToken) {
+            return false;
+        }
+
+        try {
+            $token = PersonalAccessToken::findToken($bearerToken);
+
+            if (!$token) {
+                return false;
+            }
+
+            $expiration = config('sanctum.expiration');
+            if ($expiration && $token->created_at->lte(now()->subMinutes($expiration))) {
+                return false;
+            }
+
+            return true;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
     public function register(Request $request)
     {
         $fields = $request->validate([
@@ -32,6 +57,14 @@ class AuthController extends Controller
 
         $token = $user->createToken('register token')->plainTextToken;
 
+        // merge The cart items
+        if (isset($request->session_id)) {
+            // dd($request->session_id);
+            $sessionId = $request->session_id;
+            CartItemsController::mergeCartItems($sessionId, $user->id);
+        }
+
+
         return response()->json([
             'user' => $user,
             'role' => $user->getRoleNames(),
@@ -45,24 +78,30 @@ class AuthController extends Controller
 
         $request->validate([
             'email' => 'required|email|exists:users',
-            'password' => 'required'
+            'password' =>'required'
+
         ]);
 
         $user = User::where('email', $request->email)->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
+
+        if (!$user || !Hash::check($request->password, $user->password)){
             return response()->json([
                 'message' => 'Invalid credentials',
                 'status' => 'error'
             ], 401);
         }
 
-        // revoke old ones
+
         $user->tokens()->delete();
 
         $token = $user->createToken('login token')->plainTextToken;
 
-        $user->notify(new LoginNotification());
+
+        if (isset($request->session_id)) {
+            $sessionId = $request->session_id;
+            CartItemsController::mergeCartItems($sessionId, $user->id);
+        }
 
         return response()->json([
             "user" => $user,
