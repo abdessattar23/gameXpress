@@ -97,6 +97,7 @@ class AuthController extends Controller
 
         $token = $user->createToken('login token')->plainTextToken;
 
+
         if (isset($request->session_id)) {
             $sessionId = $request->session_id;
             CartItemsController::mergeCartItems($sessionId, $user->id);
