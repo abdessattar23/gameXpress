@@ -47,7 +47,7 @@ class RolesPermissionsSeeder extends Seeder
         $role_3 = Role::create(['name' => 'user_manager']);
         $role_4 = Role::create(['name' => 'client']);
 
-        
+
         $role_1->givePermissionTo(Permission::all());
         $role_2->givePermissionTo([
             'view_dashboard',
