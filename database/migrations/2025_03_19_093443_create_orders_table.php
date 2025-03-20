@@ -14,8 +14,9 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained();
-            $table->integer('total_price');
-            $table->enum('status',['en attente', 'en cours', 'expédiée', 'annulée'])->default('en attente');
+            $table->decimal('total_price', 10, 2);
+            $table->string('session_id');
+            $table->enum('status',['pending', 'in process', 'shipped', 'cancled'])->default('pending');
             $table->timestamps();
         });
     }

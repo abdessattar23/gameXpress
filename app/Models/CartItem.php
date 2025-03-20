@@ -14,14 +14,14 @@ class CartItem extends Model
     protected $fillable = [
         'session_id',
         'user_id',
-        'product_id',
+        'product_id', 
         'quantity'
     ];
     public function User(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
- 
+
 
     public function product()
     {
