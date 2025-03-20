@@ -62,6 +62,8 @@ Route::prefix('/v1/admin')->middleware('auth:sanctum')->group(function () {
 
         Route::get('/orders', [OrderController::class, 'index']);
         Route::delete('/orders/{id}', [OrderController::class, 'delete']);
+        Route::put('/orders/{id}/status', [OrderController::class, 'updateStatus']);
+        Route::get('/orders/{id}', [OrderController::class, 'show']);
     });
 });
 

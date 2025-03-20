@@ -41,4 +41,46 @@ class OrderController extends Controller
             ]);
         }
     }
+
+    public function updateStatus(Request $request, $id)
+    {
+        $order = Order::find($id);
+
+        if (!$order) {
+            return response()->json([
+                "message" => "Order not found"
+            ], 404);
+        }
+
+        $validStatuses = ['en attente', 'en cours', 'expédiée', 'annulée'];
+
+        if (!in_array($request->status, $validStatuses)) {
+            return response()->json([
+                "message" => "Invalid status"
+            ], 400);
+        }
+
+        $order->update(['status' => $request->status]);
+
+        return response()->json([
+            "message" => "Status updated successfully",
+            "order" => $order
+        ]);
+    }
+
+    public function show($id)
+    {
+        $order = Order::find($id);
+
+        if (!$order) {
+            return response()->json([
+                "message" => "Order not found"
+            ], 404);
+        }
+
+        return response()->json([
+            "message" => "success",
+            "order" => $order
+        ]);
+    }
 }
