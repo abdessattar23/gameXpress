@@ -8,25 +8,23 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
-     */
+    */
     public function up(): void
     {
-        Schema::create('orders', function (Blueprint $table) {
+        Schema::create('order_items', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained();
-            $table->integer('total_price');
-            $table->string('session_id');
-            $table->enum('status',['pending', 'in process', 'shipped', 'cancelled'])->default('pending');
-            $table->softDeletes();
+            $table->foreignId('product_id')->constrained()->onDelete('restrict');
+            $table->foreignId('order_id')->constrained()->onDelete('cascade');
+            $table->decimal('price', 10, 2);
             $table->timestamps();
         });
     }
 
     /**
      * Reverse the migrations.
-     */
+    */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('order_items');
     }
 };
