@@ -10,7 +10,7 @@ class CartItem extends Model
 {
     use HasFactory;
 
-    protected $table = 'card_items';
+    protected $table = 'cart_items';
     protected $fillable = [
         'session_id',
         'user_id',
@@ -21,7 +21,7 @@ class CartItem extends Model
     {
         return $this->belongsTo(User::class);
     }
- 
+
 
     public function product()
     {
