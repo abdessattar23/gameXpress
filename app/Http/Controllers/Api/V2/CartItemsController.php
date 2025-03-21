@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Api\V2;
 
+use App\Helpers\Helpers;
 use App\Http\Controllers\Controller;
 use App\Models\CartItem;
+use App\Models\OrderItem;
 use App\Models\Product;
 use App\Jobs\DeleteProductJob;
 use Carbon\Carbon;
@@ -252,14 +254,14 @@ class CartItemsController extends Controller
     public function checkout(){
 
         $stripe = new \Stripe\StripeClient(env('STRIPE_SECRET_KEY'));
-        $cartItems = CartItem::with('product')->get();
         $userId = auth()->user()->id;
-        if ($cartItems->isEmpty()) {
+        $cartItem = CartItem::with('product')->where('user_id', $userId)->get();
+        if ($cartItem->isEmpty()) {
             return response()->json(['message' => 'Cart is empty'], 400);
         }
         $lineItems = [];
         $total = 0;
-        foreach ($cartItems as $item) {
+        foreach ($cartItem as $item) {
             $total += $item->product->price * $item->quantity;
             $lineItems[] = [
                 'price_data' => [
@@ -287,16 +289,21 @@ class CartItemsController extends Controller
                 "total_price" => $total,
                 "session_id" => $session->id
             ]);
-
+            // create oder items
+            foreach ($cartItem as $item) {
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'product_id' => $item->product_id,
+                    'price' => $item->product->price,
+                ]);
+            }
             // Create payment
             $payment = Payment::create([
                 "order_id" => $order->id,
-                "payment_type" => "card",
-                // "status" => "pending",
+                "payment_type" => "stripe",
                 "transaction_id" => $session->id
             ]);
             DB::commit();
-            // dd($payment);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
