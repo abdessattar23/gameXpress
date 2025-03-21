@@ -142,8 +142,10 @@ class CartItemsController extends Controller
                     'session_id' => 'required',
                 ]);
                 $conditions['session_id'] = $validated['session_id'];
+                $total = $this->calculateTotal(null, $conditions['session_id'], 0, 0, 0);
             } else {
                 $conditions['user_id'] = PersonalAccessToken::findToken($request->bearerToken())->tokenable->id;
+                $total = $this->calculateTotal($conditions['user_id'], null, 0, 0, 0);
             }
 
             $items = CartItem::where($conditions)
