@@ -26,14 +26,14 @@ class OrderController extends Controller
             ], 404);
         }
 
-        if ($order->status != "expédiée" && $order->status != "annulée") {
-            $order->update(["status" => "annulée"]);
+        if ($order->status != "shipped" && $order->status != "cancelled") {
+            $order->update(["status" => "cancelled"]);
             return response()->json([
                 "message" => "The process has completed successfully"
             ]);
-        } elseif ($order->status == "expédiée") {
+        } elseif ($order->status == "shipped") {
             return response()->json([
-                "message" => "The order is already expédiée"
+                "message" => "The order is already shipped"
             ]);
         } else {
             return response()->json([
@@ -52,7 +52,7 @@ class OrderController extends Controller
             ], 404);
         }
 
-        $validStatuses = ['en attente', 'en cours', 'expédiée', 'annulée'];
+        $validStatuses = ['pending', 'in process', 'shipped', 'cancelled'];
 
         if (!in_array($request->status, $validStatuses)) {
             return response()->json([

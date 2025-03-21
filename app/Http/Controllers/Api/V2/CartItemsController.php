@@ -352,6 +352,8 @@ class CartItemsController extends Controller
         }
     }
     public function failure(){
-        return "failure";
+        return response()->json([
+            'message' => 'Checkout failed'
+        ], 500);
     }
 }
