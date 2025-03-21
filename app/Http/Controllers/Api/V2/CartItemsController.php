@@ -47,9 +47,6 @@ class CartItemsController extends Controller
                 $data['session_id'] = null;
             }
 
-            $cart = CartItem::create($data);
-            DeleteProductJob::dispatch($cart->id)->delay(Carbon::now()->addHours(48));
-
             $existingItem = CartItem::where([
                 'session_id' => $data['session_id'],
                 'product_id' => $data['product_id']
@@ -65,7 +62,8 @@ class CartItemsController extends Controller
 
                 $existingItem->update(['quantity' => $newQuantity]);
             } else {
-                CartItem::create($data);
+                $cart = CartItem::create($data);
+                DeleteProductJob::dispatch($cart->id)->delay(Carbon::now()->addHours(48));
             }
 
             return response()->json(['message' => 'Item added to cart', 'session_id' => $data['session_id']]);
@@ -329,15 +327,21 @@ class CartItemsController extends Controller
 
         DB::beginTransaction();
         try {
-            $myOrder = Order::where('session_id', $sessionId)->first();
+            $myOrder = Order::with('items')->where('session_id', $sessionId)->first();
             $myPayment = Payment::where('transaction_id', $sessionId)->first();
-            $myPayment->status = "paid";
+            $cartItems = CartItem::where('user_id', $myOrder->user_id);
+            $myPayment->status = "completed";
             $myPayment->save();
 
             $myOrder->status = "in process";
             $myOrder->save();
-
-            $cartItems = CartItem::where('user_id', $myOrder->user_id)->delete();
+            foreach($myOrder->items as $orderItem){
+                $cartItem = $cartItems->where('product_id', $orderItem->product_id)->first();
+                $product = Product::find($orderItem->product_id);
+                $product->stock -= $cartItem->quantity;
+                $product->save();
+            }
+            $cartItems->delete();
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
