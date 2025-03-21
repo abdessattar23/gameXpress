@@ -15,7 +15,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained();
             $table->integer('total_price');
-            $table->enum('status',['en attente', 'en cours', 'expédiée', 'annulée'])->default('en attente');
+            $table->string('session_id');
+            $table->enum('status',['pending', 'in process', 'shipped', 'cancelled'])->default('pending');
+            $table->softDeletes();
             $table->timestamps();
         });
     }
@@ -25,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('orders');
     }
 };

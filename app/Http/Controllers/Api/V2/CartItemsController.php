@@ -2,16 +2,25 @@
 
 namespace App\Http\Controllers\Api\V2;
 
+use App\Helpers\Helpers;
 use App\Http\Controllers\Controller;
 use App\Models\CartItem;
+use App\Models\OrderItem;
 use App\Models\Product;
 use App\Jobs\DeleteProductJob;
 use Carbon\Carbon;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
+use App\Models\Order;
+use App\Models\Payment;
 use GuzzleHttp\Psr7\Response;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\PersonalAccessToken;
+use Stripe\Customer;
+use Stripe\Stripe;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class CartItemsController extends Controller
 {
@@ -38,9 +47,6 @@ class CartItemsController extends Controller
                 $data['session_id'] = null;
             }
 
-            $cart = CartItem::create($data);
-            DeleteProductJob::dispatch($cart->id)->delay(Carbon::now()->addSeconds(10));
-
             $existingItem = CartItem::where([
                 'session_id' => $data['session_id'],
                 'product_id' => $data['product_id']
@@ -56,7 +62,8 @@ class CartItemsController extends Controller
 
                 $existingItem->update(['quantity' => $newQuantity]);
             } else {
-                CartItem::create($data);
+                $cart = CartItem::create($data);
+                DeleteProductJob::dispatch($cart->id)->delay(Carbon::now()->addHours(48));
             }
 
             return response()->json(['message' => 'Item added to cart', 'session_id' => $data['session_id']]);
@@ -135,10 +142,10 @@ class CartItemsController extends Controller
                     'session_id' => 'required',
                 ]);
                 $conditions['session_id'] = $validated['session_id'];
-                $total = $this->calculateTotal(null, $conditions['session_id']);
+                $total = $this->calculateTotal(null, $conditions['session_id'], 0, 0, 0);
             } else {
                 $conditions['user_id'] = PersonalAccessToken::findToken($request->bearerToken())->tokenable->id;
-                $total = $this->calculateTotal($conditions['user_id'], null);
+                $total = $this->calculateTotal($conditions['user_id'], null, 0, 0, 0);
             }
 
             $items = CartItem::where($conditions)
@@ -150,7 +157,6 @@ class CartItemsController extends Controller
             return response()->json([
                 'message' => 'Cart items retrieved successfully',
                 'items' => $items,
-                'total' => $total
             ]);
         } catch (\Throwable $th) {
             return response()->json(['message' => 'Error retrieving cart items', 'error' => $th->getMessage()], 500);
@@ -158,7 +164,8 @@ class CartItemsController extends Controller
     }
 
 
-    public static function mergeCartItems($sessionId, $userId){
+    public static function mergeCartItems($sessionId, $userId)
+    {
 
         $sessionCartItems = CartItem::whereNull('user_id')
             ->where('session_id', $sessionId)
@@ -170,7 +177,7 @@ class CartItemsController extends Controller
             $existingItem = CartItem::where('user_id', $userId)
                 ->where('product_id', $sessionItem->product_id)
                 ->first();
-            // dd($existingItem);
+
 
             if ($existingItem) {
                 $existingItem->quantity += $sessionItem->quantity;
@@ -187,19 +194,15 @@ class CartItemsController extends Controller
 
     public function removeFromCart($id)
     {
-        $row = CartItem::findOrFail($id);
-        $userId = $row->user_id;
-        $sessionId = $row->session_id;
-        $row->delete();
-        $total = 0;
-        if ($userId === null) {
-            $total = $this->calculateTotal(null, $sessionId);
-        } else {
-            $total = $this->calculateTotal($userId, null);
+        $cartItem = CartItem::find($id);
+        if (!$cartItem) {
+            return response()->json([
+                'message' => 'Cart item not found'
+            ], 404);
         }
+        $cartItem->delete();
         return response()->json([
             'message' => 'Item removed from cart',
-            'new total' => $total
         ]);
     }
     public function calculateTotal($user, $sessionid, $livraison, $tva, $discount)
@@ -229,14 +232,14 @@ class CartItemsController extends Controller
 
         $totalPrice = $subtotal + $tva + $livraison;
 
-        return response()->json([
+        return [
             'subtotal' => round($subtotal, 2),
             'total_discount' => round($totalDiscount, 2),
             'tva' => round($tva, 2),
             'shipping_fee' => round($livraison, 2),
             'total_price' => round($totalPrice, 2),
             'total_quantity' => $totalQuantity
-        ]);
+        ];
     }
 
     public function discount() {}
@@ -245,5 +248,112 @@ class CartItemsController extends Controller
 
         $t = $this->calculateTotal(null, 1, 2, 0.4, 2);
         dd($t);
+    }
+
+    public function checkout(){
+
+        $stripe = new \Stripe\StripeClient(env('STRIPE_SECRET_KEY'));
+        $userId = auth()->user()->id;
+        $cartItem = CartItem::with('product')->where('user_id', $userId)->get();
+        if ($cartItem->isEmpty()) {
+            return response()->json(['message' => 'Cart is empty'], 400);
+        }
+        $lineItems = [];
+        $total = 0;
+        foreach ($cartItem as $item) {
+            $total += $item->product->price * $item->quantity;
+            $lineItems[] = [
+                'price_data' => [
+                    'currency' => 'usd',
+                    'product_data' => [
+                        'name' => $item->product->name,
+                    ],
+                    'unit_amount' => $item->product->price * 100,
+                ],
+                'quantity' => $item->quantity,
+            ];
+        }
+
+        $session = $stripe->checkout->sessions->create([
+            'line_items' => $lineItems,
+            'mode' => 'payment',
+            'success_url' => route('success', [], true).'?session_id={CHECKOUT_SESSION_ID}',
+            'cancel_url' => route('cancel', [], true).'?session_id={CHECKOUT_SESSION_ID}',
+        ]);
+        DB::beginTransaction();
+        try {
+            // Create order
+            $order = Order::create([
+                "user_id" => $userId,
+                "total_price" => $total,
+                "session_id" => $session->id
+            ]);
+            // create oder items
+            foreach ($cartItem as $item) {
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'product_id' => $item->product_id,
+                    'price' => $item->product->price,
+                ]);
+            }
+            // Create payment
+            $payment = Payment::create([
+                "order_id" => $order->id,
+                "payment_type" => "stripe",
+                "transaction_id" => $session->id
+            ]);
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Checkout failed',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+        return response()->json([
+            'sessionId' => $session->id,
+            'url' => $session->url,
+            'message' => 'success'
+        ]);
+
+    }
+
+    public function success(Request $request){
+        $sessionId = $request->get('session_id');
+        $stripe = new \Stripe\StripeClient(env('STRIPE_SECRET_KEY'));
+        $session = $stripe->checkout->sessions->retrieve($sessionId);
+
+
+
+        DB::beginTransaction();
+        try {
+            $myOrder = Order::with('items')->where('session_id', $sessionId)->first();
+            $myPayment = Payment::where('transaction_id', $sessionId)->first();
+            $cartItems = CartItem::where('user_id', $myOrder->user_id);
+            $myPayment->status = "completed";
+            $myPayment->save();
+
+            $myOrder->status = "in process";
+            $myOrder->save();
+            foreach($myOrder->items as $orderItem){
+                $cartItem = $cartItems->where('product_id', $orderItem->product_id)->first();
+                $product = Product::find($orderItem->product_id);
+                $product->stock -= $cartItem->quantity;
+                $product->save();
+            }
+            $cartItems->delete();
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Checkout failed',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    public function failure(){
+        return response()->json([
+            'message' => 'Checkout failed'
+        ], 500);
     }
 }

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\api\v1\admin\CategoryController;
 use App\Http\Controllers\Api\V1\Admin\DashboardController;
+use App\Http\Controllers\Api\V1\Admin\OrderController;
 use App\Http\Controllers\Api\V1\Admin\PaymentController;
 use App\Http\Controllers\Api\V1\Admin\ProductController;
 use App\Http\Controllers\Api\V1\Admin\UserController;
@@ -55,10 +56,15 @@ Route::prefix('/v1/admin')->middleware('auth:sanctum')->group(function () {
     /*
     payments routes
     */
-    Route::middleware('role:super_admin')->group(function(){
+    Route::middleware('role:super_admin')->group(function () {
         Route::get('/payments', [PaymentController::class, 'index']);
-    });
 
+
+        Route::get('/orders', [OrderController::class, 'index']);
+        Route::delete('/orders/{id}', [OrderController::class, 'delete']);
+        Route::put('/orders/{id}/status', [OrderController::class, 'updateStatus']);
+        Route::get('/orders/{id}', [OrderController::class, 'show']);
+    });
 });
 
 
@@ -75,7 +81,7 @@ Route::get('roles/{id}', [RolesController::class, 'show'])->middleware('auth:san
 Route::put('roles/edit/{id}', [RolesController::class, 'update'])->middleware('auth:sanctum');
 Route::delete('roles/delete/{id}', [RolesController::class, 'destroy'])->middleware('auth:sanctum');
 
-    
+
 // Routes for assigning roles to users
 Route::post('assign-roles', [RolesController::class, 'assignRoleToUser'])->middleware('auth:sanctum');
 Route::get('users/{id}/roles', [RolesController::class, 'getUserRoles'])->middleware('auth:sanctum');
@@ -87,3 +93,8 @@ Route::prefix('/v2/cart')->group(function () {
     Route::post('/clear', [CartItemsController::class, 'clear']);
     Route::get('/items', [CartItemsController::class, 'items']);
 });
+
+// testing checkout
+Route::post('/checkout', [CartItemsController::class, 'checkout'])->name('checkout')->middleware('auth:sanctum');
+Route::get('/success', [CartItemsController::class, 'success'])->name('success');
+Route::get('/cancel', [CartItemsController::class, 'cancel'])->name('cancel');
