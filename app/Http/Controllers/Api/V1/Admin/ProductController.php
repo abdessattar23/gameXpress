@@ -103,7 +103,7 @@ class ProductController extends Controller
             ], 403);
         }
 
-        $product = Product::find($id);
+        $product = Product::with('images')->find($id);
 
         if(!$product){
             return response()->json([

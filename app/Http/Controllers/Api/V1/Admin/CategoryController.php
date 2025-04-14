@@ -97,4 +97,27 @@ class CategoryController extends Controller
             'message' => 'Category deleted successfully'
         ], 200);
     }
+
+    public function show($id)
+    {
+        if (!auth()->user()->can('view_categories')) {
+            return response()->json([
+                'message' => 'You do not have permission to view categories'
+            ], 403);
+        }
+
+        $category = Category::find($id);
+
+        if (!$category) {
+            return response()->json([
+                'message' => 'Category not found',
+                'status' => 'error 404'
+            ], 404);
+        }
+
+        return response()->json([
+            'message' => 'Category retrieved successfully',
+            'data' => $category
+        ], 200);
+    }
 }
