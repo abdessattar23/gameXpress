@@ -33,6 +33,10 @@ Route::post('/products/{product}/restore', [ProductController::class, 'restore']
 Route::delete('/products/{product}/hard-delete', [ProductController::class, 'forceDelete'])->middleware('auth:sanctum');
 Route::get('/products', [ProductController::class, 'viewAll']);
 
+
+//user info
+Route::get('/user', [AuthController::class, 'user'])->middleware('auth:sanctum');
+
 // users and categories routes
 Route::prefix('/v1/admin')->middleware('auth:sanctum')->group(function () {
     /*

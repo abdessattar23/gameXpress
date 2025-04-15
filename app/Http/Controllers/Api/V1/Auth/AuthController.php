@@ -73,6 +73,16 @@ class AuthController extends Controller
         ], 201);
     }
 
+    public function user(Request $request)
+    {
+        $user = $request->user();
+
+        return response()->json([
+            'user' => $user,
+            'role' => $user->getRoleNames(),
+            'message' => 'User retrieved successfully'
+        ], 200);
+    }
     public function login(Request $request)
     {
 
