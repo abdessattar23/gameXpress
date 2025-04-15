@@ -31,6 +31,7 @@ Route::get('/v1/admin/dashboard', [DashboardController::class, 'index'])->middle
 Route::apiResource('products', ProductController::class)->middleware(['auth:sanctum', 'role:super_admin|product_manager']);
 Route::post('/products/{product}/restore', [ProductController::class, 'restore'])->middleware('auth:sanctum');
 Route::delete('/products/{product}/hard-delete', [ProductController::class, 'forceDelete'])->middleware('auth:sanctum');
+Route::get('/products', [ProductController::class, 'viewAll']);
 
 // users and categories routes
 Route::prefix('/v1/admin')->middleware('auth:sanctum')->group(function () {

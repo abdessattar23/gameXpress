@@ -14,14 +14,8 @@ use Illuminate\Support\Facades\DB;
 class ProductController extends Controller
 {
 
-    public function index()
+    public function viewAll()
     {
-
-        if(!auth()->user()->can('view_products')){
-            return response()->json([
-                'message' => 'You do not have permission to view products'
-            ], 403);
-        }
         $this->lowStockNotification();
 
         $products = Product::all();
