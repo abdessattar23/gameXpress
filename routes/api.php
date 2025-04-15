@@ -39,6 +39,7 @@ Route::get('/products/{product}', [ProductController::class, 'showProduct']);
 Route::get('/user', [AuthController::class, 'user'])->middleware('auth:sanctum');
 
 // users and categories routes
+Route::get('/v1/admin/categories/{category}', [CategoryController::class, 'show']);
 Route::prefix('/v1/admin')->middleware('auth:sanctum')->group(function () {
     /*
     categories routes
@@ -48,7 +49,6 @@ Route::prefix('/v1/admin')->middleware('auth:sanctum')->group(function () {
         Route::post('/categories', [CategoryController::class, 'store']);
         Route::put('/categories/{category}', [CategoryController::class, 'update']);
         Route::delete('/categories/{category}', [CategoryController::class, 'destroy']);
-        Route::get('/categories/{category}', [CategoryController::class, 'show']);
     });
     /*
     users routes

@@ -100,11 +100,6 @@ class CategoryController extends Controller
 
     public function show($id)
     {
-        if (!auth()->user()->can('view_categories')) {
-            return response()->json([
-                'message' => 'You do not have permission to view categories'
-            ], 403);
-        }
 
         $category = Category::find($id);
 
