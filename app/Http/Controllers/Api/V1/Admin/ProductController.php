@@ -18,7 +18,7 @@ class ProductController extends Controller
     {
         $this->lowStockNotification();
 
-        $products = Product::all();
+        $products = Product::with('images')->get();
 
         return response()->json([
             'products_list' => $products,
