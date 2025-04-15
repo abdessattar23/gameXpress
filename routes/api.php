@@ -32,6 +32,7 @@ Route::apiResource('products', ProductController::class)->middleware(['auth:sanc
 Route::post('/products/{product}/restore', [ProductController::class, 'restore'])->middleware('auth:sanctum');
 Route::delete('/products/{product}/hard-delete', [ProductController::class, 'forceDelete'])->middleware('auth:sanctum');
 Route::get('/products', [ProductController::class, 'viewAll']);
+Route::get('/products/{product}', [ProductController::class, 'showProduct']);
 
 
 //user info

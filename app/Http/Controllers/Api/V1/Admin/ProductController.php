@@ -88,14 +88,8 @@ class ProductController extends Controller
     }
 
 
-    public function show($id)
+    public function showProduct($id)
     {
-
-        if (!auth()->user()->can('view_products')){
-            return response()->json([
-                'message' => 'You do not have permission to view this product'
-            ], 403);
-        }
 
         $product = Product::with('images')->find($id);
 
