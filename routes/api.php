@@ -99,6 +99,7 @@ Route::prefix('/v2/cart')->group(function () {
     Route::delete('/remove/{CartItem}', [CartItemsController::class, 'removeFromCart']);
     Route::post('/clear', [CartItemsController::class, 'clear']);
     Route::get('/items', [CartItemsController::class, 'items']);
+    Route::post('/merge', [CartItemsController::class, 'mergeCartItems']);
 });
 
 // testing checkout

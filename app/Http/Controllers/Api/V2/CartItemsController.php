@@ -137,7 +137,7 @@ class CartItemsController extends Controller
         try {
             $conditions = [];
             if (!AuthController::validToken($request->bearerToken())) {
-                // dd(true);
+                // dd($request->all());
                 $validated = $request->validate([
                     'session_id' => 'required',
                 ]);
@@ -150,6 +150,7 @@ class CartItemsController extends Controller
 
             $items = CartItem::where($conditions)
                 ->with('product')
+                ->with('product.images')
                 ->get();
 
 
@@ -159,18 +160,22 @@ class CartItemsController extends Controller
                 'items' => $items,
             ]);
         } catch (\Throwable $th) {
-            return response()->json(['message' => 'Error retrieving cart items', 'error' => $th->getMessage()], 500);
+            return response()->json(['message' => 'Error retrieving cart items', 'error' => $th->getMessage()], 200);
         }
     }
 
 
-    public static function mergeCartItems($sessionId, $userId)
+    public function mergeCartItems(Request $request)
     {
-
+        $request->validate([
+            'session_id' => 'required',
+        ]);
+        $sessionId = $request->session_id;
+        $userId = PersonalAccessToken::findToken($request->bearerToken())->tokenable->id;
         $sessionCartItems = CartItem::whereNull('user_id')
             ->where('session_id', $sessionId)
             ->get();
-        // dd($sessionCartItems);
+        // dd($sessionId);
 
         foreach ($sessionCartItems as $sessionItem) {
 

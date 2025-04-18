@@ -57,12 +57,6 @@ class AuthController extends Controller
 
         $token = $user->createToken('register token')->plainTextToken;
 
-        // merge The cart items
-        if (isset($request->session_id)) {
-            // dd($request->session_id);
-            $sessionId = $request->session_id;
-            CartItemsController::mergeCartItems($sessionId, $user->id);
-        }
 
 
         return response()->json([
@@ -108,10 +102,7 @@ class AuthController extends Controller
         $token = $user->createToken('login token')->plainTextToken;
 
 
-        if (isset($request->session_id)) {
-            $sessionId = $request->session_id;
-            CartItemsController::mergeCartItems($sessionId, $user->id);
-        }
+
 
         return response()->json([
             "user" => $user,
